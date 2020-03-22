@@ -7,7 +7,8 @@ ENTRY(kern_entry)
 
 SECTIONS {
     /* Load the kernel at this address: "." means the current address */
-    . = 0xC0100000;
+    /* the phy addr of ucore (before ucore enable paging mechanism*/
+    . = 0x0100000;
 
     .text : {
         *(.text .stub .text.* .gnu.linkonce.t.*)
@@ -42,11 +43,6 @@ SECTIONS {
     /* The data segment */
     .data : {
         *(.data)
-    }
-
-    . = ALIGN(0x1000);
-    .data.pgdir : {
-        *(.data.pgdir)
     }
 
     PROVIDE(edata = .);

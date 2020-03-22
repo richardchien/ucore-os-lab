@@ -1,9 +1,3 @@
-file obj/bootblock.o
+file bin/kernel
 target remote :1234
-
-define hook-stop
-x/i $pc
-end
-
-break *0x7C00
-continue
+break kern_init

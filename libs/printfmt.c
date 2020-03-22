@@ -26,12 +26,12 @@ static const char *const error_string[MAXERROR + 1] = {
 
 /* *
  * printnum - print a number (base <= 16) in reverse order
- * @putch:        specified putch function, print a single character
- * @putdat:        used by @putch function
+ * @putch:      specified putch function, print a single character
+ * @putdat:     used by @putch function
  * @num:        the number will be printed
- * @base:        base for print, must be in [1, 16]
- * @width:         maximum number of digits, if the actual width is less than @width, use @padc instead
- * @padc:        character that padded on the left if the actual width is less than @width
+ * @base:       base for print, must be in [1, 16]
+ * @width:      maximum number of digits, if the actual width is less than @width, use @padc instead
+ * @padc:       character that padded on the left if the actual width is less than @width
  * */
 static void printnum(void (*putch)(int, void *), void *putdat, unsigned long long num, unsigned base, int width,
                      int padc) {
@@ -51,8 +51,8 @@ static void printnum(void (*putch)(int, void *), void *putdat, unsigned long lon
 
 /* *
  * getuint - get an unsigned int of various possible sizes from a varargs list
- * @ap:            a varargs list pointer
- * @lflag:        determines the size of the vararg that @ap points to
+ * @ap:         a varargs list pointer
+ * @lflag:      determines the size of the vararg that @ap points to
  * */
 static unsigned long long getuint(va_list *ap, int lflag) {
     if (lflag >= 2) {
@@ -66,8 +66,8 @@ static unsigned long long getuint(va_list *ap, int lflag) {
 
 /* *
  * getint - same as getuint but signed, we can't use getuint because of sign extension
- * @ap:            a varargs list pointer
- * @lflag:        determines the size of the vararg that @ap points to
+ * @ap:         a varargs list pointer
+ * @lflag:      determines the size of the vararg that @ap points to
  * */
 static long long getint(va_list *ap, int lflag) {
     if (lflag >= 2) {
@@ -81,8 +81,8 @@ static long long getint(va_list *ap, int lflag) {
 
 /* *
  * printfmt - format a string and print it by using putch
- * @putch:        specified putch function, print a single character
- * @putdat:        used by @putch function
+ * @putch:      specified putch function, print a single character
+ * @putdat:     used by @putch function
  * @fmt:        the format string to use
  * */
 void printfmt(void (*putch)(int, void *), void *putdat, const char *fmt, ...) {
@@ -96,10 +96,10 @@ void printfmt(void (*putch)(int, void *), void *putdat, const char *fmt, ...) {
 /* *
  * vprintfmt - format a string and print it by using putch, it's called with a va_list
  * instead of a variable number of arguments
- * @putch:        specified putch function, print a single character
- * @putdat:        used by @putch function
+ * @putch:      specified putch function, print a single character
+ * @putdat:     used by @putch function
  * @fmt:        the format string to use
- * @ap:            arguments for the format string
+ * @ap:         arguments for the format string
  *
  * Call this function if you are already dealing with a va_list.
  * Or you probably want printfmt() instead.
@@ -269,8 +269,8 @@ struct sprintbuf {
 
 /* *
  * sprintputch - 'print' a single character in a buffer
- * @ch:            the character will be printed
- * @b:            the buffer to place the character @ch
+ * @ch:         the character will be printed
+ * @b:          the buffer to place the character @ch
  * */
 static void sprintputch(int ch, struct sprintbuf *b) {
     b->cnt++;
@@ -282,7 +282,7 @@ static void sprintputch(int ch, struct sprintbuf *b) {
 /* *
  * snprintf - format a string and place it in a buffer
  * @str:        the buffer to place the result into
- * @size:        the size of buffer, including the trailing null space
+ * @size:       the size of buffer, including the trailing null space
  * @fmt:        the format string to use
  * */
 int snprintf(char *str, size_t size, const char *fmt, ...) {
@@ -298,9 +298,9 @@ int snprintf(char *str, size_t size, const char *fmt, ...) {
  * vsnprintf - format a string and place it in a buffer, it's called with a va_list
  * instead of a variable number of arguments
  * @str:        the buffer to place the result into
- * @size:        the size of buffer, including the trailing null space
+ * @size:       the size of buffer, including the trailing null space
  * @fmt:        the format string to use
- * @ap:            arguments for the format string
+ * @ap:         arguments for the format string
  *
  * The return value is the number of characters which would be generated for the
  * given input, excluding the trailing '\0'.

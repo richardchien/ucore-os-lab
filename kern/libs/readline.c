@@ -5,7 +5,7 @@ static char buf[BUFSIZE];
 
 /* *
  * readline - get a line from stdin
- * @prompt:        the string to be written to stdout
+ * @prompt:     the string to be written to stdout
  *
  * The readline() function will write the input string @prompt to
  * stdout first. If the @prompt is NULL or the empty string,
