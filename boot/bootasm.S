@@ -26,21 +26,25 @@ start:
     #  For backwards compatibility with the earliest PCs, physical
     #  address line 20 is tied low, so that addresses higher than
     #  1MB wrap around to zero by default. This code undoes this.
-seta20.1:
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
-    testb $0x2, %al
-    jnz seta20.1
 
-    movb $0xd1, %al                                 # 0xd1 -> port 0x64
-    outb %al, $0x64                                 # 0xd1 means: write data to 8042's P2 port
+    # read
+    call wait_8042
+    movb $0xd0, %al
+    outb %al, $0x64
+    call wait_8042
+    inb $0x60, %al
 
-seta20.2:
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
-    testb $0x2, %al
-    jnz seta20.2
+    # modify
+    movb %al, %dl
+    orb $0x2, %dl                                   # enable the A20 bit
 
-    movb $0xdf, %al                                 # 0xdf -> port 0x60
-    outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+    # write
+    call wait_8042
+    movb $0xd1, %al
+    outb %al, $0x64
+    call wait_8042
+    movb %dl, %al
+    outb %al, $0x60
 
     # Switch from real to protected mode, using a bootstrap GDT
     # and segment translation that makes virtual addresses
@@ -54,6 +58,12 @@ seta20.2:
     # Jump to next instruction, but in 32-bit code segment.
     # Switches processor into 32-bit mode.
     ljmp $PROT_MODE_CSEG, $protcseg
+
+wait_8042:
+    inb $0x64, %al                                  # Wait for 8042 not busy.
+    testb $0x2, %al
+    jnz wait_8042
+    ret
 
 .code32                                             # Assemble for 32-bit mode
 protcseg:
@@ -75,12 +85,12 @@ spin:
     jmp spin
 
 # Bootstrap GDT
-.p2align 2                                          # force 4 byte alignment
+.p2align 2                                    # force 4 byte alignment
 gdt:
-    SEG_NULLASM                                     # null seg
-    SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)           # code seg for bootloader and kernel
-    SEG_ASM(STA_W, 0x0, 0xffffffff)                 # data seg for bootloader and kernel
+    SEG_NULLASM                               # null seg， selector: 0x0
+    SEG_ASM(STA_X|STA_R, 0x0, 0xffffffff)     # code seg for bootloader and kernel, selector: 0x8
+    SEG_ASM(STA_W, 0x0, 0xffffffff)           # data seg for bootloader and kernel, selector: 0x10
 
 gdtdesc:
-    .word 0x17                                      # sizeof(gdt) - 1
+    .word 0x17                                      # sizeof(gdt) - 1 (8*3-1 = 23 = 0x17)
     .long gdt                                       # address gdt

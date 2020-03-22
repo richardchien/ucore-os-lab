@@ -237,6 +237,11 @@ debug-nox-tui: $(UCOREIMG)
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "gdb -q -tui -x tools/gdbinit"
 
+debug-tui-bios: $(UCOREIMG)
+	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
+	$(V)sleep 2
+	$(V)$(TERMINAL) -e "gdb -q -tui -x tools/gdbinit_bios"
+
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # targets related to grading
 
