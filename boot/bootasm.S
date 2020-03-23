@@ -46,22 +46,22 @@ start:
     outb %al, $0x60
 
 probe_memory:
-    movl $0, 0x8000
-    xorl %ebx, %ebx
-    movw $0x8004, %di
+    movl $0, 0x8000            # 0x8000 处开始存放 struct e820map, 前 4 字节是系统内存映射地址描述符（ARD）个数
+    xorl %ebx, %ebx            # EBX 清零
+    movw $0x8004, %di          # 0x8004 开始存放 struct e820map 的 map 字段, 即以 20 字节为单位的 ARD 数组, BIOS 通过 ES:DI 获得该位置
 start_probe:
-    movl $0xE820, %eax
-    movl $20, %ecx
-    movl $SMAP, %edx
-    int $0x15
-    jnc cont
-    movw $12345, 0x8000
+    movl $0xE820, %eax         # 调用 int 0x15 0xe820 请求 BIOS 进行内存探测
+    movl $20, %ecx             # 保存 ARD 的内存大小, 20 字节
+    movl $SMAP, %edx           # "SWAP" 字符串
+    int $0x15                  # 调用 BIOS 0x15 号中断
+    jnc continue_probe         # 如果 int 0x15 执行成功, CF 标志位是 0, 否则是 1
+    movw $12345, 0x8000        # CF == 1, 探测失败
     jmp finish_probe
-cont:
-    addw $20, %di
-    incl 0x8000
-    cmpl $0, %ebx
-    jnz start_probe
+continue_probe:                # CF == 0, 继续探测
+    addw $20, %di              # 指出下一个 ARD 应该存放的位置
+    incl 0x8000                # 增加 struct e820map 的 nr_map 字段值（增加 ARD 个数）
+    cmpl $0, %ebx              # EBX == 0 表示探测已结束
+    jnz start_probe            # EBX != 0 则继续探测
 finish_probe:
 
     # Switch from real to protected mode, using a bootstrap GDT

@@ -108,16 +108,34 @@ static void default_init_memmap(struct Page *base, size_t n) {
     struct Page *p = base;
     for (; p != base + n; p++) {
         assert(PageReserved(p));
-        p->flags = p->property = 0;
+        p->flags = 0; // reserved bit = 0, property bit = 0
+        p->property = 0;
         set_page_ref(p, 0);
     }
-    base->property = n;
-    SetPageProperty(base);
+    base->property = n; // page num of free block
+    SetPageProperty(base); // for base page, property bit = 1
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+    // 地址从小到大, e.g. free_list -> (b: 0, n: 100) -> (b: 120, n: 20) -> free_list
+    list_add_before(&free_list, &(base->page_link));
+}
+
+/**
+ * 打印空闲块链表, 用于调试.
+ */
+static void dump_free_areas() {
+    list_entry_t *le = &free_list;
+    cprintf("free_list");
+    while ((le = list_next(le)) != &free_list) {
+        struct Page *p = le2page(le, page_link);
+        cprintf(" -> (base: %u, n: %u)", p - pages, p->property);
+    }
+    cprintf(" -> free_list\n");
 }
 
 static struct Page *default_alloc_pages(size_t n) {
+    // cprintf("--------- default_alloc_pages begin, n = %u\n", n);
+    // dump_free_areas();
+
     assert(n > 0);
     if (n > nr_free) {
         return NULL;
@@ -127,50 +145,70 @@ static struct Page *default_alloc_pages(size_t n) {
     while ((le = list_next(le)) != &free_list) {
         struct Page *p = le2page(le, page_link);
         if (p->property >= n) {
-            page = p;
+            page = p; // 找到第一个 fit 的空闲块
             break;
         }
     }
     if (page != NULL) {
-        list_del(&(page->page_link));
         if (page->property > n) {
-            struct Page *p = page + n;
-            p->property = page->property - n;
-            list_add(&free_list, &(p->page_link));
+            struct Page *p = page + n; // 找到要分配的页之后的一页
+            SetPageProperty(p); // 使之成为新的空闲块起始页
+            p->property = page->property - n; // 设置新的空闲块大小
+            list_add(&(page->page_link), &(p->page_link)); // 将新的空闲块插入到当前空闲块后面 (从而保证空闲块地址有序)
         }
+        ClearPageProperty(page); // 清除空闲块起始页标记
+        list_del(&(page->page_link)); // 从空闲块链表中删除当前分配的块
         nr_free -= n;
-        ClearPageProperty(page);
     }
+
+    // dump_free_areas();
+    // cprintf("--------- default_alloc_pages end\n");
     return page;
 }
 
 static void default_free_pages(struct Page *base, size_t n) {
+    // cprintf("--------- default_free_pages begin, base = %u, n = %u\n", base - pages, n);
+    // dump_free_areas();
+
     assert(n > 0);
     struct Page *p = base;
     for (; p != base + n; p++) {
         assert(!PageReserved(p) && !PageProperty(p));
         p->flags = 0;
+        p->property = 0;
         set_page_ref(p, 0);
     }
     base->property = n;
     SetPageProperty(base);
     list_entry_t *le = list_next(&free_list);
+    list_entry_t *insert_before_pos = &free_list;
     while (le != &free_list) {
         p = le2page(le, page_link);
-        le = list_next(le);
-        if (base + base->property == p) {
+        le = list_next(le); // 这里需要提前获得 p 的 next, 因为后面可能会把 p 从 list 中删除
+
+        if (p > base + base->property) { // p 空闲块地址大于当前块结尾, 说明不会再有相邻的块, 并且已到达正确的插入位置
+            insert_before_pos = &(p->page_link);
+            break;
+        }
+
+        if (p == base + base->property) { // p 空闲块与当前块高地址相邻, 合并
             base->property += p->property;
             ClearPageProperty(p);
+            insert_before_pos = list_next(&(p->page_link)); // 更新插入位置
             list_del(&(p->page_link));
-        } else if (p + p->property == base) {
+        } else if (p + p->property == base) { // p 空闲块与当前块低地址相邻
             p->property += base->property;
             ClearPageProperty(base);
-            base = p;
+            base = p; // 把地址更小的 p 作为新的当前块
+            insert_before_pos = list_next(&(p->page_link)); // 更新插入位置
             list_del(&(p->page_link));
         }
     }
     nr_free += n;
-    list_add(&free_list, &(base->page_link));
+    list_add_before(insert_before_pos, &(base->page_link));
+
+    // dump_free_areas();
+    // cprintf("--------- default_free_pages end\n");
 }
 
 static size_t default_nr_free_pages(void) {

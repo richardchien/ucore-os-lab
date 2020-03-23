@@ -184,9 +184,9 @@ static void page_init(void) {
                 begin,
                 end - 1,
                 memmap->map[i].type);
-        if (memmap->map[i].type == E820_ARM) {
+        if (memmap->map[i].type == E820_ARM) { // 如果这一块内存是非保留内存
             if (maxpa < end && begin < KMEMSIZE) {
-                maxpa = end;
+                maxpa = end; // 则扩展 maxpa
             }
         }
     }
@@ -194,10 +194,11 @@ static void page_init(void) {
         maxpa = KMEMSIZE;
     }
 
-    extern char end[];
+    extern char end[]; // 由 linker 提供, 指向内核的结束虚拟地址 (见 tools/kernel.ld)
 
+    // 设置全局变量 npage, pages, 将在其它地方 (主要是 pmm.h 里的内联函数) 通过这两个变量获得物理页数组
     npage = maxpa / PGSIZE;
-    pages = (struct Page *)ROUNDUP((void *)end, PGSIZE);
+    pages = (struct Page *)ROUNDUP((void *)end, PGSIZE); // 物理页数组直接放在了内核的结尾
 
     for (i = 0; i < npage; i++) {
         SetPageReserved(pages + i);
@@ -215,10 +216,12 @@ static void page_init(void) {
                 end = KMEMSIZE;
             }
             if (begin < end) {
-                begin = ROUNDUP(begin, PGSIZE);
+                begin = ROUNDUP(begin, PGSIZE); // 将空闲内存块的开始和结尾地址舍入到页的边界
                 end = ROUNDDOWN(end, PGSIZE);
                 if (begin < end) {
-                    init_memmap(pa2page(begin), (end - begin) / PGSIZE);
+                    // 调用 pmm 初始化内存块
+                    init_memmap(pa2page(begin) /* 空闲内存块的起始物理页 */,
+                                (end - begin) / PGSIZE /* 连续空闲页数量 */);
                 }
             }
         }
@@ -328,6 +331,22 @@ pte_t *get_pte(pde_t *pgdir, uintptr_t la, bool create) {
      *   PTE_W           0x002                   // page table/directory entry flags bit : Writeable
      *   PTE_U           0x004                   // page table/directory entry flags bit : User can access
      */
+
+    pte_t *ptep = NULL; // 页表项指针
+    pde_t *pdep = &pgdir[PDX(la)]; // 页目录项指针 (地址部分指向页表)
+    if (*pdep & PTE_P) { // 如果该 la 对应的页目录项存在 (也就是对应页表存在)
+        pte_t *pt = KADDR(PDE_ADDR(*pdep)); // 获得页表起始虚拟地址 (页目录项和页表项中存的是物理地址, 需 KADDR 转换)
+        ptep = &pt[PTX(la)]; // 获得页表项指针
+    } else if (create) { // 否则页表不存在, 若需要创建
+        struct Page *pt_page = alloc_page(); // 先分配一个物理页
+        page_ref_inc(pt_page);
+        pte_t *pt = page2kva(pt_page); // 获得该物理页的内核虚拟地址
+        memset(pt, 0, PGSIZE); // 将一页全部置为 0
+        *pdep = page2pa(pt_page) | PTE_P | PTE_W | PTE_U; // 将该页表地址设置到页目录项
+        ptep = &pt[PTX(la)]; // 获得页表项指针
+    }
+    return ptep;
+
 #if 0
     pde_t *pdep = NULL;   // (1) find page directory entry
     if (0) {              // (2) check if entry is not present
@@ -374,6 +393,19 @@ static inline void page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
      * DEFINEs:
      *   PTE_P           0x001                   // page table/directory entry flags bit : Present
      */
+
+    if (!(*ptep & PTE_P)) { // 如果所给页表项并不存在映射
+        return; // 则直接返回
+    }
+
+    struct Page *page = pte2page(*ptep); // 获得页表项所映射到的物理页
+    page_ref_dec(page); // 物理页引用计数减 1
+    if (page_ref(page) == 0) { // 如果已经没有页表项映射到该物理页
+        free_page(page); // 则回收该物理页
+    }
+    *ptep = 0; // 清空页表项 (present bit 被置为 0)
+    tlb_invalidate(pgdir, la);
+
 #if 0
     if (0) {                      //(1) check if this page table entry is present
         struct Page *page = NULL; //(2) find corresponding page to pte

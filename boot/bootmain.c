@@ -95,11 +95,16 @@ void bootmain(void) {
     ph = (struct proghdr *)((uintptr_t)ELFHDR + ELFHDR->e_phoff);
     eph = ph + ELFHDR->e_phnum;
     for (; ph < eph; ph++) {
+        // 注意这里 ph->p_va & 0xFFFFFF, 只取了链接时指定的虚拟地址 0xC0100000 的后 6 个十六进制位,
+        // 也就是将内核装载到物理地址 0x00100000.
+        // 后面启动页机制后, 将把虚拟地址 0xC0100000 映射到物理地址 0x00100000.
         readseg(ph->p_va & 0xFFFFFF, ph->p_memsz, ph->p_offset);
     }
 
     // call the entry point from the ELF header
     // note: does not return
+    // 不同于 Lab 1, 这里 ELFHDR->e_entry 指向 kern/init/entry.S 的 kern_entry,
+    // 被装载到了物理地址 0x00100000.
     ((void (*)(void))(ELFHDR->e_entry & 0xFFFFFF))();
 
 bad:
