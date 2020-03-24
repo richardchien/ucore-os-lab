@@ -220,14 +220,14 @@ TARGETS: $(TARGETS)
 
 .DEFAULT_GOAL := TARGETS
 
-.PHONY: qemu qemu-nox qemu-log
+QEMUOPTS = -hda $(UCOREIMG) -drive file=$(SWAPIMG),media=disk,cache=writeback
 
-qemu: $(UCOREIMG)
-	$(V)$(QEMU) -no-reboot -parallel stdio -hda $< -serial null
-qemu-nox: $(UCOREIMG)
-	$(V)$(QEMU) -no-reboot -serial mon:stdio -hda $< -nographic
-qemu-log: $(UCOREIMG)
-	$(V)$(QEMU) -no-reboot -d int,cpu_reset -D q.log -parallel stdio -hda $< -serial null
+.PHONY: qemu qemu-nox
+
+qemu: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -no-reboot -parallel stdio $(QEMUOPTS) -serial null
+qemu-nox: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -no-reboot -serial mon:stdio $(QEMUOPTS) -nographic
 
 TERMINAL := $(shell if command -v gnome-terminal > /dev/null; \
 	then echo 'gnome-terminal'; exit; \
@@ -240,21 +240,21 @@ TERMINAL := $(shell if command -v gnome-terminal > /dev/null; \
 
 .PHONY: debug debug-nox debug-tui debug-nox-tui
 
-debug: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null
-debug-nox: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -serial mon:stdio -hda $< -nographic
-debug-tui: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
+debug: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null
+debug-nox: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -S -s -serial mon:stdio $(QEMUOPTS) -nographic
+debug-tui: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "$(GDB) -q -tui -x tools/gdbinit"
-debug-nox-tui: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -serial mon:stdio -hda $< -nographic &
+debug-nox-tui: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -S -s -serial mon:stdio $(QEMUOPTS) -nographic &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "$(GDB) -q -tui -x tools/gdbinit"
 
-debug-tui-bios: $(UCOREIMG)
-	$(V)$(QEMU) -S -s -parallel stdio -hda $< -serial null &
+debug-tui-bios: $(UCOREIMG) $(SWAPIMG)
+	$(V)$(QEMU) -S -s -parallel stdio $(QEMUOPTS) -serial null &
 	$(V)sleep 2
 	$(V)$(TERMINAL) -e "$(GDB) -q -tui -x tools/gdbinit_bios"
 
