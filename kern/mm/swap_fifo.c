@@ -48,10 +48,11 @@ static int _fifo_map_swappable(struct mm_struct *mm, uintptr_t addr, struct Page
     // record the page access situlation
     /*LAB3 EXERCISE 2: YOUR CODE*/
     //(1)link the most recent arrival page at the back of the pra_list_head qeueue.
+    list_add_before(head, entry); // 将刚刚换入到的物理页加到最近访问列表的尾部
     return 0;
 }
 /*
- *  (4)_fifo_swap_out_victim: According FIFO PRA, we should unlink the  earliest arrival page in front of pra_list_head
+ * (4)_fifo_swap_out_victim: According FIFO PRA, we should unlink the  earliest arrival page in front of pra_list_head
  * qeueue, then assign the value of *ptr_page to the addr of this page.
  */
 static int _fifo_swap_out_victim(struct mm_struct *mm, struct Page **ptr_page, int in_tick) {
@@ -62,6 +63,14 @@ static int _fifo_swap_out_victim(struct mm_struct *mm, struct Page **ptr_page, i
     /*LAB3 EXERCISE 2: YOUR CODE*/
     //(1)  unlink the  earliest arrival page in front of pra_list_head qeueue
     //(2)  assign the value of *ptr_page to the addr of this page
+
+    list_entry_t *victim = list_next(&pra_list_head);
+    if (victim == &pra_list_head) {
+        return 1; // FIFO 队列里没有元素, 也就是没有最近使用的物理页
+    }
+
+    list_del(victim);
+    *ptr_page = le2page(victim, pra_page_link);
     return 0;
 }
 

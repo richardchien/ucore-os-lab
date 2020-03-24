@@ -352,6 +352,25 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
      *   mm->pgdir : the PDT of these vma
      *
      */
+
+    ptep = get_pte(mm->pgdir, addr, 1);
+    if (!ptep) goto failed;
+    if (*ptep == 0) { // 当前访问的线性地址在当前页目录中还没有建立映射
+        struct Page *page = pgdir_alloc_page(mm->pgdir, addr, perm); // 则直接分配物理内存并建立映射
+        if (!page) goto failed;
+    } else { // 当前访问的线性地址曾经建立过映射, 但被换出到了硬盘, 此时 *ptep 是一个 swap_entry_t
+        if (swap_init_ok) {
+            struct Page *page = NULL;
+            swap_in(mm, addr, &page);
+            page_insert(mm->pgdir, page, addr, perm); // 重新建立页表映射
+            swap_map_swappable(mm, addr, page, 0); // 设置该物理页为可交换
+            page->pra_vaddr = addr;
+        } else {
+            cprintf("no swap_init_ok but ptep is %x, failed\n", *ptep);
+            goto failed;
+        }
+    }
+
 #if 0
     /*LAB3 EXERCISE 1: YOUR CODE*/
     ptep = ???              //(1) try to find a pte, if pte's PT(Page Table) isn't existed, then create a PT.
