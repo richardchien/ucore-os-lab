@@ -70,12 +70,14 @@
 
 #ifndef __ASSEMBLER__
 
-#include <atomic.h>
 #include <defs.h>
+
+#include <atomic.h>
 #include <list.h>
 
 typedef uintptr_t pte_t;
 typedef uintptr_t pde_t;
+typedef pte_t swap_entry_t; // the pte can also be a swap entry
 
 // some constants for bios interrupt 15h AX = 0xE820
 #define E820MAX 20 // number of entries in E820MAP
@@ -101,6 +103,8 @@ struct Page {
     uint32_t flags; // array of flags that describe the status of the page frame
     unsigned int property; // the num of free block, used in first fit pm manager
     list_entry_t page_link; // free list link
+    list_entry_t pra_page_link; // used for pra (page replace algorithm)
+    uintptr_t pra_vaddr; // used for pra (page replace algorithm)
 };
 
 /* Flags describing the status of a page frame */

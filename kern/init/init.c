@@ -1,6 +1,7 @@
 #include <clock.h>
 #include <console.h>
 #include <defs.h>
+#include <ide.h>
 #include <intr.h>
 #include <kdebug.h>
 #include <kmonitor.h>
@@ -8,7 +9,9 @@
 #include <pmm.h>
 #include <stdio.h>
 #include <string.h>
+#include <swap.h>
 #include <trap.h>
+#include <vmm.h>
 
 int kern_init(void) __attribute__((noreturn));
 void grade_backtrace(void);
@@ -31,6 +34,11 @@ int kern_init(void) {
 
     pic_init(); // init interrupt controller
     idt_init(); // init interrupt descriptor table
+
+    vmm_init(); // init virtual memory management
+
+    ide_init(); // init ide devices
+    swap_init(); // init swap
 
     clock_init(); // init clock interrupt
     intr_enable(); // enable irq interrupt
