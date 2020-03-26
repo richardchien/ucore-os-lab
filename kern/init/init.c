@@ -7,6 +7,7 @@
 #include <kmonitor.h>
 #include <picirq.h>
 #include <pmm.h>
+#include <proc.h>
 #include <stdio.h>
 #include <string.h>
 #include <swap.h>
@@ -36,6 +37,7 @@ int kern_init(void) {
     idt_init(); // init interrupt descriptor table
 
     vmm_init(); // init virtual memory management
+    proc_init(); // init process table
 
     ide_init(); // init ide devices
     swap_init(); // init swap
@@ -47,9 +49,7 @@ int kern_init(void) {
     // user/kernel mode switch test
     // lab1_switch_test();
 
-    /* do nothing */
-    while (1)
-        ;
+    cpu_idle(); // run idle process
 }
 
 void __attribute__((noinline)) grade_backtrace2(int arg0, int arg1, int arg2, int arg3) {

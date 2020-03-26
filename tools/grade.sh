@@ -321,7 +321,7 @@ brkfun=readline
 
 ## check now!!
 
-quick_run 'Check SWAP'
+quick_run 'Check VMM'
 
 pts=5
 quick_check 'check pmm'                                         \
@@ -338,7 +338,7 @@ quick_check 'check page table'                                  \
     '  |-- PTE(000e0) faf00000-fafe0000 000e0000 urw'           \
     '  |-- PTE(00001) fafeb000-fafec000 00001000 -rw'
 
-pts=10
+pts=25
 quick_check 'check vmm'                                         \
     'check_vma_struct() succeeded!'                             \
     'page fault at 0x00000100: K/W [no page found].'            \
@@ -361,9 +361,13 @@ quick_check 'check swap page fault'                             \
 
 pts=5
 quick_check 'check ticks'                                       \
-    '++ setup timer interrupts'                                 \
-    '100 ticks'                                                 \
-    'End of Test.'
+    '++ setup timer interrupts'
+
+pts=30
+quick_check 'check initproc'                                    \
+    'this initproc, pid = 1, name = "init"'                     \
+    'To U: "Hello world!!".'                                    \
+    'To U: "en.., Bye, Bye. :)"'
 
 ## print final-score
 show_final

@@ -77,4 +77,3 @@ __boot_pt1:  # boot 期间使用的页表, 实际上直接将页号 * PGSIZE (�
     .long i * PGSIZE + (PTE_P | PTE_W)
     .set i, i + 1
 .endr
-

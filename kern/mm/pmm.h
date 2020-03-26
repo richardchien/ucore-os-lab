@@ -7,6 +7,10 @@
 #include <memlayout.h>
 #include <mmu.h>
 
+/* fork flags used in do_fork*/
+#define CLONE_VM 0x00000100 // set if VM shared between processes
+#define CLONE_THREAD 0x00000200 // thread group
+
 // pmm_manager is a physical memory management class. A special pmm manager - XXX_pmm_manager
 // only needs to implement the methods in pmm_manager class, then XXX_pmm_manager can be used
 // by ucore to manage the total physical memory space.
@@ -132,6 +136,4 @@ static inline int page_ref_dec(struct Page *page) {
 
 extern char bootstack[], bootstacktop[];
 
-extern void *kmalloc(size_t n);
-extern void kfree(void *ptr, size_t n);
 #endif /* !__KERN_MM_PMM_H__ */
