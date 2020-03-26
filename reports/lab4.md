@@ -77,6 +77,76 @@ bad_fork_cleanup_proc:
 }
 ```
 
+## 修正上述实现存在的问题
+
+看到练习里问了「能否做到给每个新 fork 的线程一个唯一的 id」，觉得有点奇怪，想了一会儿觉得应该是可以，然而看了参考答案后恍然大悟，由于没有禁止中断处理，设置 `proc->pid` 那块的操作可能不是原子的（而且上面的实现没充分利用已经给出的 `get_pid` 和 `wakeup_proc` 函数），因此是有可能出现一个进程分配了 pid 后立即中断，然后中断时创建了新进程获得了同样的 pid 的情况的。
+
+参照答案修改如下：
+
+```c
+// alloc_proc - alloc a proc_struct and init all fields of proc_struct
+static struct proc_struct *alloc_proc(void) {
+    struct proc_struct *proc = kmalloc(sizeof(struct proc_struct));
+    if (proc != NULL) {
+        proc->state = PROC_UNINIT;
+        proc->pid = -1;
+        proc->runs = 0;
+        proc->kstack = 0;
+        proc->need_resched = 0;
+        proc->parent = NULL;
+        proc->mm = NULL;
+        memset(&(proc->context), 0, sizeof(proc->context));
+        proc->tf = NULL;
+        proc->cr3 = boot_cr3;
+        proc->flags = 0;
+        set_proc_name(proc, "");
+    }
+    return proc;
+}
+
+/* do_fork -     parent process for a new child process
+ * @clone_flags: used to guide how to clone the child process
+ * @stack:       the parent's user stack pointer. if stack==0, It means to fork a kernel thread.
+ * @tf:          the trapframe info, which will be copied to child process's proc->tf
+ */
+int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
+    int ret = -E_NO_FREE_PROC;
+    struct proc_struct *proc;
+    if (nr_process >= MAX_PROCESS) {
+        goto fork_out;
+    }
+    ret = -E_NO_MEM;
+
+    if (!(proc = alloc_proc())) goto fork_out;
+    proc->parent = current;
+    if (setup_kstack(proc) != 0) goto bad_fork_cleanup_proc;
+    if (copy_mm(clone_flags, proc) != 0) goto bad_fork_cleanup_kstack;
+    copy_thread(proc, stack, tf);
+
+    bool intr_flag;
+    local_intr_save(intr_flag);
+    {
+        proc->pid = get_pid();
+        hash_proc(proc);
+        list_add(&proc_list, &(proc->list_link));
+        nr_process++;
+    }
+    local_intr_restore(intr_flag);
+
+    wakeup_proc(proc);
+    ret = proc->pid;
+
+fork_out:
+    return ret;
+
+bad_fork_cleanup_kstack:
+    put_kstack(proc);
+bad_fork_cleanup_proc:
+    kfree(proc);
+    goto fork_out;
+}
+```
+
 ## 参考资料
 
 - [实验指导书 5.3 内核线程管理](https://objectkuan.gitbooks.io/ucore-docs/content/lab4/lab4_3_kernel_thread_management.html)
