@@ -78,9 +78,9 @@ struct proc_struct *current = NULL;
 
 static int nr_process = 0;
 
-void kernel_thread_entry(void);
-void forkrets(struct trapframe *tf);
-void switch_to(struct context *from, struct context *to);
+void kernel_thread_entry(void); // 定义在 kern/process/entry.S
+void forkrets(struct trapframe *tf); // 定义在 kern/trap/trapentry.S
+void switch_to(struct context *from, struct context *to); // 定义在 kern/process/switch.S
 
 // alloc_proc - alloc a proc_struct and init all fields of proc_struct
 static struct proc_struct *alloc_proc(void) {
@@ -102,6 +102,18 @@ static struct proc_struct *alloc_proc(void) {
          *       uint32_t flags;                             // Process flag
          *       char name[PROC_NAME_LEN + 1];               // Process name
          */
+        proc->state = PROC_UNINIT;
+        proc->pid = -1;
+        proc->runs = 0;
+        proc->kstack = (uintptr_t)bootstack;
+        proc->need_resched = 0;
+        proc->parent = current;
+        proc->mm = NULL;
+        memset(&(proc->context), 0, sizeof(proc->context));
+        proc->tf = NULL;
+        proc->cr3 = boot_cr3;
+        proc->flags = 0;
+        set_proc_name(proc, "");
     }
     return proc;
 }
@@ -282,6 +294,17 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
     //    5. insert proc_struct into hash_list && proc_list
     //    6. call wakeup_proc to make the new child process RUNNABLE
     //    7. set ret vaule using child proc's pid
+
+    if (!(proc = alloc_proc())) goto fork_out;
+    if (setup_kstack(proc) != 0) goto bad_fork_cleanup_proc;
+    if (copy_mm(clone_flags, proc) != 0) goto bad_fork_cleanup_kstack;
+    copy_thread(proc, stack, tf);
+    proc->pid = nr_process++;
+    hash_proc(proc);
+    list_add(&proc_list, &(proc->list_link));
+    proc->state = PROC_RUNNABLE;
+    ret = proc->pid;
+
 fork_out:
     return ret;
 

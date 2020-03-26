@@ -134,6 +134,6 @@ static inline int page_ref_dec(struct Page *page) {
     return page->ref;
 }
 
-extern char bootstack[], bootstacktop[];
+extern char bootstack[], bootstacktop[]; // 在 kern/init/entry.S 中定义
 
 #endif /* !__KERN_MM_PMM_H__ */
