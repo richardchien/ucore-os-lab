@@ -73,5 +73,5 @@ target remote :1234
 
 ## 参考资料
 
-- [实验指导书 2.3.1 BIOS 启动过程](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_1_bios_booting.html)
-- [实验指导书 2.6 启动后第一条执行的指令](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_5_appendix.html)
+- [BIOS 启动过程 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_1_bios_booting.html)
+- [启动后第一条执行的指令 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_5_appendix.html)

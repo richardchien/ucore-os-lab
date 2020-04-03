@@ -123,6 +123,6 @@ int kern_init(void) {
 
 ## 参考资料
 
-- [实验指导书 2.3.2.3 硬盘访问概述](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_2_3_dist_accessing.html)
-- [实验指导书 2.3.2.3 ELF 文件格式概述](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_2_4_elf.html)
+- [硬盘访问概述 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_2_3_dist_accessing.html)
+- [ELF 文件格式概述 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_2_4_elf.html)
 - [ELF - OSDev Wiki](https://wiki.osdev.org/ELF)

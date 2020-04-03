@@ -67,5 +67,5 @@ void print_stackframe(void) {
 
 ## 参考资料
 
-- [实验指导书 2.3.3.1 函数堆栈](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_3_1_function_stack.html)
+- [函数堆栈 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_3_1_function_stack.html)
 - [x86 calling conventions - Wikipedia](https://en.wikipedia.org/wiki/X86_calling_conventions#Microsoft_x64_calling_convention)

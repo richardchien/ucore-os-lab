@@ -120,5 +120,5 @@ switch (tf->tf_trapno) {
 
 ## 参考资料
 
-- [实验指导书 2.3.3.2 中断与异常](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_3_2_interrupt_exception.html)
+- [中断与异常 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_3_2_interrupt_exception.html)
 - [Intel 80386 Programmer's Reference Manual](https://css.csail.mit.edu/6.858/2014/readings/i386.pdf), Chapter 9 Exceptions and Interrupts

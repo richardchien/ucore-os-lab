@@ -11,8 +11,6 @@
 
 这里 `kern_entry` 相比 Lab 1 是完全新增的部分，主要功能是设置一个初始的页目录和页表，将虚拟地址 `KERNBASE` + (0 ~ 4M) 映射到物理地址 0 ~ 4M，并通知 CPU 启用页机制，然后调用 `kern/init/init.c` 的 `kern_init()`。
 
-实验指导书里面「3.3.5 实现分页机制」这一部分内容和目前的代码已经严重脱节，可以说不具备参考意义了，这里直接通过理解视频课内容和阅读代码可以看明白做了什么，并在关键代码中加了中文注释。
-
 `kern_init()` 中与本次实验相关的主要是 `pmm_init()` 函数的调用，进入了物理内存管理模块的初始化。
 
 需要编码实现的部分主要有两个：物理页的管理、二级页表的建立。
@@ -41,5 +39,5 @@
 
 ## 参考资料
 
-- [实验指导书 3.3 物理内存管理](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_3_2_interrupt_exception.html)
+- [物理内存管理 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab2/lab2_3_3_phymem_manage.html)
 - [Intel 80386 Programmer's Reference Manual](https://css.csail.mit.edu/6.858/2014/readings/i386.pdf), Chapter 5 Memory Management

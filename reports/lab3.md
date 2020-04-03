@@ -103,7 +103,7 @@ if (*ptep == 0) { // 当前访问的线性地址在当前页目录中还没有�
 
 ## 参考资料
 
-- [实验指导书 4.3 虚拟内存管理](https://objectkuan.gitbooks.io/ucore-docs/content/lab3/lab3_3_vmm.html)
-- [实验指导书 4.4 Page Fault 异常处理](https://objectkuan.gitbooks.io/ucore-docs/content/lab3/lab3_4_page_fault_handler.html)
-- [实验指导书 4.5 页面置换机制的实现](https://objectkuan.gitbooks.io/ucore-docs/content/lab3/lab3_5_swapping.html)
+- [虚拟内存管理 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab3/lab3_3_vmm.html)
+- [异常处理 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab3/lab3_4_page_fault_handler.html)
+- [页面置换机制的实现 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab3/lab3_5_swapping.html)
 - [Intel 80386 Programmer's Reference Manual](https://css.csail.mit.edu/6.858/2014/readings/i386.pdf), Chapter 5 Memory Management

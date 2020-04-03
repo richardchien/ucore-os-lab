@@ -149,4 +149,4 @@ bad_fork_cleanup_proc:
 
 ## 参考资料
 
-- [实验指导书 5.3 内核线程管理](https://objectkuan.gitbooks.io/ucore-docs/content/lab4/lab4_3_kernel_thread_management.html)
+- [内核线程管理 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab4/lab4_3_kernel_thread_management.html)

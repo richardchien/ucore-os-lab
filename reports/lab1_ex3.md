@@ -214,9 +214,9 @@ protcseg:
 
 ## 参考资料
 
-- [实验指导书 2.3.2.1 保护模式和分段机制](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_2_1_protection_mode.html)
-- [实验指导书 2.3.2.2 地址空间](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_3_2_2_address_space.html)
-- [实验指导书 2.5 关于 A20 Gate](https://objectkuan.gitbooks.io/ucore-docs/content/lab1/lab1_appendix_a20.html)
+- [保护模式和分段机制 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_2_1_protection_mode.html)
+- [地址空间 - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_3_2_2_address_space.html)
+- [关于 A20 Gate - 实验指导书](https://chyyuu.gitbooks.io/ucore_os_docs/content/lab1/lab1_appendix_a20.html)
 - [Intel 80386 Programmer's Reference Manual](https://css.csail.mit.edu/6.858/2014/readings/i386.pdf), Chapter 4 Systems Architecture, Chapter 5 Memory Management, Chapter 10 Initialization, Chapter 17 80386 Instruction Set
 - ["8042" PS/2 Controller - OSDev Wiki](https://wiki.osdev.org/%228042%22_PS/2_Controller)
 - [A20 Line - OSDev Wiki](https://wiki.osdev.org/A20_Line)
