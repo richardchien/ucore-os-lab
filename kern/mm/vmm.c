@@ -53,6 +53,9 @@ struct mm_struct *mm_create(void) {
             swap_init_mm(mm);
         else
             mm->sm_priv = NULL;
+
+        set_mm_count(mm, 0);
+        lock_init(&(mm->mm_lock));
     }
     return mm;
 }
@@ -135,6 +138,8 @@ void insert_vma_struct(struct mm_struct *mm, struct vma_struct *vma) {
 
 // mm_destroy - free mm and mm internal fields
 void mm_destroy(struct mm_struct *mm) {
+    assert(mm_count(mm) == 0);
+
     list_entry_t *list = &(mm->mmap_list), *le;
     while ((le = list_next(list)) != list) {
         list_del(le);
@@ -142,6 +147,86 @@ void mm_destroy(struct mm_struct *mm) {
     }
     kfree(mm); // kfree mm
     mm = NULL;
+}
+
+int mm_map(struct mm_struct *mm, uintptr_t addr, size_t len, uint32_t vm_flags, struct vma_struct **vma_store) {
+    uintptr_t start = ROUNDDOWN(addr, PGSIZE), end = ROUNDUP(addr + len, PGSIZE);
+    if (!USER_ACCESS(start, end)) {
+        return -E_INVAL;
+    }
+
+    assert(mm != NULL);
+
+    int ret = -E_INVAL;
+
+    struct vma_struct *vma;
+    if ((vma = find_vma(mm, start)) != NULL && end > vma->vm_start) {
+        goto out;
+    }
+    ret = -E_NO_MEM;
+
+    if ((vma = vma_create(start, end, vm_flags)) == NULL) {
+        goto out;
+    }
+    insert_vma_struct(mm, vma);
+    if (vma_store != NULL) {
+        *vma_store = vma;
+    }
+    ret = 0;
+
+out:
+    return ret;
+}
+
+int dup_mmap(struct mm_struct *to, struct mm_struct *from) {
+    assert(to != NULL && from != NULL);
+    list_entry_t *list = &(from->mmap_list), *le = list;
+    while ((le = list_prev(le)) != list) {
+        struct vma_struct *vma, *nvma;
+        vma = le2vma(le, list_link);
+        nvma = vma_create(vma->vm_start, vma->vm_end, vma->vm_flags);
+        if (nvma == NULL) {
+            return -E_NO_MEM;
+        }
+
+        insert_vma_struct(to, nvma);
+
+        bool share = 0;
+        if (copy_range(to->pgdir, from->pgdir, vma->vm_start, vma->vm_end, share) != 0) {
+            return -E_NO_MEM;
+        }
+    }
+    return 0;
+}
+
+void exit_mmap(struct mm_struct *mm) {
+    assert(mm != NULL && mm_count(mm) == 0);
+    pde_t *pgdir = mm->pgdir;
+    list_entry_t *list = &(mm->mmap_list), *le = list;
+    while ((le = list_next(le)) != list) {
+        struct vma_struct *vma = le2vma(le, list_link);
+        unmap_range(pgdir, vma->vm_start, vma->vm_end);
+    }
+    while ((le = list_next(le)) != list) {
+        struct vma_struct *vma = le2vma(le, list_link);
+        exit_range(pgdir, vma->vm_start, vma->vm_end);
+    }
+}
+
+bool copy_from_user(struct mm_struct *mm, void *dst, const void *src, size_t len, bool writable) {
+    if (!user_mem_check(mm, (uintptr_t)src, len, writable)) {
+        return 0;
+    }
+    memcpy(dst, src, len);
+    return 1;
+}
+
+bool copy_to_user(struct mm_struct *mm, void *dst, const void *src, size_t len) {
+    if (!user_mem_check(mm, (uintptr_t)dst, len, 1)) {
+        return 0;
+    }
+    memcpy(dst, src, len);
+    return 1;
 }
 
 // vmm_init - initialize virtual memory management
@@ -387,12 +472,22 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     *    page_insert ： build the map of phy addr of an Page with the linear addr la
     *    swap_map_swappable ： set the page swappable
     */
+    /*
+     * LAB5 CHALLENGE ( the implmentation Copy on Write)
+        There are 2 situlations when code comes here.
+          1) *ptep & PTE_P == 1, it means one process try to write a readonly page.
+             If the vma includes this addr is writable, then we can set the page writable by rewrite the *ptep.
+             This method could be used to implement the Copy on Write (COW) thchnology(a fast fork process method).
+          2) *ptep & PTE_P == 0 & but *ptep!=0, it means this pte is a  swap entry.
+             We should add the LAB3's results here.
+     */
         if(swap_init_ok) {
             struct Page *page=NULL;
                                     //(1）According to the mm AND addr, try to load the content of right disk page
                                     //    into the memory which page managed.
                                     //(2) According to the mm, addr AND page, setup the map of phy addr <---> logical addr
                                     //(3) make the page swappable.
+                                    //(4) [NOTICE]: you myabe need to update your lab3's implementation for LAB5's normal execution.
         }
         else {
             cprintf("no swap_init_ok but ptep is %x, failed\n",*ptep);
@@ -403,4 +498,30 @@ int do_pgfault(struct mm_struct *mm, uint32_t error_code, uintptr_t addr) {
     ret = 0;
 failed:
     return ret;
+}
+
+bool user_mem_check(struct mm_struct *mm, uintptr_t addr, size_t len, bool write) {
+    if (mm != NULL) {
+        if (!USER_ACCESS(addr, addr + len)) {
+            return 0;
+        }
+        struct vma_struct *vma;
+        uintptr_t start = addr, end = addr + len;
+        while (start < end) {
+            if ((vma = find_vma(mm, start)) == NULL || start < vma->vm_start) {
+                return 0;
+            }
+            if (!(vma->vm_flags & ((write) ? VM_WRITE : VM_READ))) {
+                return 0;
+            }
+            if (write && (vma->vm_flags & VM_STACK)) {
+                if (start < vma->vm_start + PGSIZE) { // check stack start & size
+                    return 0;
+                }
+            }
+            start = vma->vm_end;
+        }
+        return 1;
+    }
+    return KERN_ACCESS(addr, addr + len);
 }
