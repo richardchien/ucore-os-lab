@@ -332,7 +332,7 @@ print-%:
 .PHONY: clean tags format
 
 clean:
-	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT) cscope* tags
+	$(V)$(RM) $(GRADE_GDB_IN) $(GRADE_QEMU_OUT) cscope* tags .*.log
 	$(V)$(RM) -r $(OBJDIR) $(BINDIR)
 
 tags:
