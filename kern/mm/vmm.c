@@ -325,6 +325,9 @@ static void check_pgfault(void) {
     uintptr_t addr = 0x100;
     assert(find_vma(mm, addr) == vma);
 
+    // 在某些版本的 QEMU 上, 如果不在这里刷新 TLB, 则会导致下面的访存不发生缺页, 进而导致 free_page 失败
+    tlb_invalidate(pgdir, addr);
+
     int i, sum = 0;
     for (i = 0; i < 100; i++) {
         *(char *)(addr + i) = i;
@@ -347,6 +350,7 @@ static void check_pgfault(void) {
 
     cprintf("check_pgfault() succeeded!\n");
 }
+
 // page fault number
 volatile unsigned int pgfault_num = 0;
 
