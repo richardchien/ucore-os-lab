@@ -19,7 +19,22 @@ void wakeup_proc(struct proc_struct *proc) {
     local_intr_restore(intr_flag);
 }
 
+/**
+ * 打印进程列表, 用于调试.
+ */
+static void dump_proc_list() {
+    list_entry_t *le = &proc_list;
+    cprintf("proc_list");
+    while ((le = list_next(le)) != &proc_list) {
+        struct proc_struct *p = le2proc(le, list_link);
+        cprintf(" -> (name: %s, pid: %d, state: %d)", p->name, p->pid, p->state);
+    }
+    cprintf(" -> proc_list\n");
+}
+
 void schedule(void) {
+    dump_proc_list();
+
     bool intr_flag;
     list_entry_t *le, *last;
     struct proc_struct *next = NULL;
