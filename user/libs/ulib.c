@@ -38,3 +38,11 @@ int getpid(void) {
 void print_pgdir(void) {
     sys_pgdir();
 }
+
+unsigned int gettime_msec(void) {
+    return (unsigned int)sys_gettime();
+}
+
+void lab6_set_priority(uint32_t priority) {
+    sys_lab6_set_priority(priority);
+}

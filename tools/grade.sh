@@ -556,5 +556,31 @@ run_test -prog 'forktree'    -check default_check               \
         'all user-mode processes have quit.'                    \
         'init check memory pass.'
 
+pts=20
+timeout=500
+run_test -prog 'matrix'     -check default_check                \
+        'kernel_execve: pid = 2, name = "matrix".'              \
+        'fork ok.'                                              \
+        'pid 4 done!.'                                          \
+        'pid 7 done!.'                                          \
+        'pid 13 done!.'                                         \
+        'pid 17 done!.'                                         \
+        'pid 23 done!.'                                         \
+        'matrix pass.'                                          \
+        'all user-mode processes have quit.'                    \
+        'init check memory pass.'                               \
+    ! - 'user panic at .*'
+
+pts=20
+timeout=150
+run_test -prog 'priority'      -check default_check             \
+	'sched class: stride_scheduler'                         \
+        'kernel_execve: pid = 2, name = "priority".'            \
+        'main: fork ok,now need to wait pids.'                  \
+        'stride sched correct result: 1 2 3 4 5'                \
+        'all user-mode processes have quit.'                    \
+        'init check memory pass.'                               \
+    ! - 'user panic at .*'
+
 ## print final-score
 show_final

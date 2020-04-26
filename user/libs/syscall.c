@@ -53,3 +53,11 @@ int sys_putc(int c) {
 int sys_pgdir(void) {
     return syscall(SYS_pgdir);
 }
+
+int sys_gettime(void) {
+    return syscall(SYS_gettime);
+}
+
+void sys_lab6_set_priority(uint32_t priority) {
+    syscall(SYS_lab6_set_priority, priority);
+}

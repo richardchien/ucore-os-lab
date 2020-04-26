@@ -109,7 +109,17 @@ static struct proc_struct *alloc_proc(void) {
          *       uint32_t wait_state;                        // waiting state
          *       struct proc_struct *cptr, *yptr, *optr;     // relations between processes
          */
-
+        // LAB6 YOUR CODE : (update LAB5 steps)
+        /*
+         * below fields(add in LAB6) in proc_struct need to be initialized
+         *     struct run_queue *rq;                       // running queue contains Process
+         *     list_entry_t run_link;                      // the entry linked in run queue
+         *     int time_slice;                             // time slice for occupying the CPU
+         *     skew_heap_entry_t lab6_run_pool;            // FOR LAB6 ONLY: the entry in the run pool
+         *     uint32_t lab6_stride;                       // FOR LAB6 ONLY: the current stride of the process
+         *     uint32_t lab6_priority;                     // FOR LAB6 ONLY: the priority of process, set by
+         * lab6_set_priority(uint32_t)
+         */
         proc->state = PROC_UNINIT;
         proc->pid = -1;
         proc->runs = 0;
@@ -854,4 +864,12 @@ void cpu_idle(void) {
             schedule();
         }
     }
+}
+
+// FOR LAB6, set the process's priority (bigger value will get more CPU time)
+void lab6_set_priority(uint32_t priority) {
+    if (priority == 0)
+        current->lab6_priority = 1;
+    else
+        current->lab6_priority = priority;
 }
