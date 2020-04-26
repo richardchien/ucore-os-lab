@@ -134,6 +134,9 @@ static struct proc_struct *alloc_proc(void) {
         set_proc_name(proc, "");
         proc->wait_state = 0;
         proc->cptr = proc->yptr = proc->optr = NULL;
+        proc->rq = NULL;
+        list_init(&proc->run_link);
+        proc->time_slice = 0;
     }
     return proc;
 }
