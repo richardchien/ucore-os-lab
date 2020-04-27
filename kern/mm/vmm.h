@@ -4,6 +4,8 @@
 #include <defs.h>
 #include <list.h>
 #include <memlayout.h>
+#include <proc.h>
+#include <sem.h>
 #include <sync.h>
 
 // pre define
@@ -34,7 +36,8 @@ struct mm_struct {
     int map_count; // the count of these vma
     void *sm_priv; // the private data for swap manager
     int mm_count; // the number of process which shared the mm
-    lock_t mm_lock; // mutex for using dup_mmap fun to duplicate the mm
+    semaphore_t mm_sem; // mutex for using dup_mmap fun to duplicat the mm
+    int locked_by; // the lock owner process's pid
 };
 
 struct vma_struct *find_vma(struct mm_struct *mm, uintptr_t addr);
@@ -81,13 +84,17 @@ static inline int mm_count_dec(struct mm_struct *mm) {
 
 static inline void lock_mm(struct mm_struct *mm) {
     if (mm != NULL) {
-        lock(&(mm->mm_lock));
+        down(&(mm->mm_sem));
+        if (current != NULL) {
+            mm->locked_by = current->pid;
+        }
     }
 }
 
 static inline void unlock_mm(struct mm_struct *mm) {
     if (mm != NULL) {
-        unlock(&(mm->mm_lock));
+        up(&(mm->mm_sem));
+        mm->locked_by = 0;
     }
 }
 

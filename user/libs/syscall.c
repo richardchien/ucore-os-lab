@@ -61,3 +61,7 @@ int sys_gettime(void) {
 void sys_lab6_set_priority(uint32_t priority) {
     syscall(SYS_lab6_set_priority, priority);
 }
+
+int sys_sleep(unsigned int time) {
+    return syscall(SYS_sleep, time);
+}

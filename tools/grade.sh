@@ -365,7 +365,7 @@ default_check() {
 ## check now!!
 
 run_test -prog 'badsegment' -check default_check                \
-        'kernel_execve: pid = 2, name = "badsegment".'          \
+      - 'kernel_execve: pid = ., name = "badsegment".*'          \
       - 'trapframe at 0xc.......'                               \
         'trap 0x0000000d General Protection'                    \
         '  err  0x00000028'                                     \
@@ -376,7 +376,7 @@ run_test -prog 'badsegment' -check default_check                \
     ! - 'user panic at .*'
 
 run_test -prog 'divzero' -check default_check                   \
-        'kernel_execve: pid = 2, name = "divzero".'             \
+      - 'kernel_execve: pid = ., name = "divzero".*'             \
       - 'trapframe at 0xc.......'                               \
         'trap 0x00000000 Divide error'                          \
       - '  eip  0x008.....'                                     \
@@ -386,7 +386,7 @@ run_test -prog 'divzero' -check default_check                   \
     ! - 'user panic at .*'
 
 run_test -prog 'softint' -check default_check                   \
-        'kernel_execve: pid = 2, name = "softint".'             \
+      - 'kernel_execve: pid = ., name = "softint".*'             \
       - 'trapframe at 0xc.......'                               \
         'trap 0x0000000d General Protection'                    \
         '  err  0x00000072'                                     \
@@ -399,7 +399,7 @@ run_test -prog 'softint' -check default_check                   \
 pts=10
 
 run_test -prog 'faultread'  -check default_check                                     \
-        'kernel_execve: pid = 2, name = "faultread".'           \
+      - 'kernel_execve: pid = ., name = "faultread".*'           \
       - 'trapframe at 0xc.......'                               \
         'trap 0x0000000e Page Fault'                            \
         '  err  0x00000004'                                     \
@@ -407,7 +407,7 @@ run_test -prog 'faultread'  -check default_check                                
     ! - 'user panic at .*'
 
 run_test -prog 'faultreadkernel' -check default_check                                \
-        'kernel_execve: pid = 2, name = "faultreadkernel".'     \
+      - 'kernel_execve: pid = ., name = "faultreadkernel".*'     \
       - 'trapframe at 0xc.......'                               \
         'trap 0x0000000e Page Fault'                            \
         '  err  0x00000005'                                     \
@@ -415,13 +415,13 @@ run_test -prog 'faultreadkernel' -check default_check                           
     ! - 'user panic at .*'
 
 run_test -prog 'hello' -check default_check                                          \
-        'kernel_execve: pid = 2, name = "hello".'               \
+      - 'kernel_execve: pid = ., name = "hello".*'               \
         'Hello world!!.'                                        \
-        'I am process 2.'                                       \
+      - 'I am process .*'                                       \
         'hello pass.'
 
 run_test -prog 'testbss' -check default_check                                        \
-        'kernel_execve: pid = 2, name = "testbss".'             \
+      - 'kernel_execve: pid = ., name = "testbss".*'             \
         'Making sure bss works right...'                        \
         'Yes, good.  Now doing a wild write off the end...'     \
         'testbss may pass.'                                     \
@@ -433,8 +433,8 @@ run_test -prog 'testbss' -check default_check                                   
     ! - 'user panic at .*'
 
 run_test -prog 'pgdir' -check default_check                                          \
-        'kernel_execve: pid = 2, name = "pgdir".'               \
-        'I am 2, print pgdir.'                                  \
+      - 'kernel_execve: pid = ., name = "pgdir".*'               \
+      - 'I am .*'                                  \
         'PDE(001) 00800000-00c00000 00400000 urw'               \
         '  |-- PTE(00002) 00800000-00802000 00002000 ur-'       \
         '  |-- PTE(00001) 00802000-00803000 00001000 urw'       \
@@ -445,19 +445,19 @@ run_test -prog 'pgdir' -check default_check                                     
         'pgdir pass.'
 
 run_test -prog 'yield' -check default_check                                          \
-        'kernel_execve: pid = 2, name = "yield".'               \
+      - 'kernel_execve: pid = ., name = "yield".*'               \
         'Hello, I am process 2.'                                \
-        'Back in process 2, iteration 0.'                       \
-        'Back in process 2, iteration 1.'                       \
-        'Back in process 2, iteration 2.'                       \
-        'Back in process 2, iteration 3.'                       \
-        'Back in process 2, iteration 4.'                       \
-        'All done in process 2.'                                \
+      - 'Back in process ., iteration 0.'                       \
+      - 'Back in process ., iteration 1.'                       \
+      - 'Back in process ., iteration 2.'                       \
+      - 'Back in process ., iteration 3.'                       \
+      - 'Back in process ., iteration 4.'                       \
+      - 'All done in process .*'                                \
         'yield pass.'
 
 
 run_test -prog 'badarg' -check default_check                    \
-        'kernel_execve: pid = 2, name = "badarg".'              \
+      - 'kernel_execve: pid = ., name = "badarg".*'              \
         'fork ok.'                                              \
         'badarg pass.'                                          \
         'all user-mode processes have quit.'                    \
@@ -467,7 +467,7 @@ run_test -prog 'badarg' -check default_check                    \
 pts=10
 
 run_test -prog 'exit'  -check default_check                                          \
-        'kernel_execve: pid = 2, name = "exit".'                \
+      - 'kernel_execve: pid = ., name = "exit".*'                \
         'I am the parent. Forking the child...'                 \
         'I am the parent, waiting now..'                        \
         'I am the child.'                                       \
@@ -478,7 +478,7 @@ run_test -prog 'exit'  -check default_check                                     
     ! - 'user panic at .*'
 
 run_test -prog 'spin'  -check default_check                                          \
-        'kernel_execve: pid = 2, name = "spin".'                \
+      - 'kernel_execve: pid = ., name = "spin".*'                \
         'I am the parent. Forking the child...'                 \
         'I am the parent. Running the child...'                 \
         'I am the child. spinning ...'                          \
@@ -491,7 +491,7 @@ run_test -prog 'spin'  -check default_check                                     
     ! - 'user panic at .*'
 
 run_test -prog 'waitkill'  -check default_check                                      \
-        'kernel_execve: pid = 2, name = "waitkill".'            \
+      - 'kernel_execve: pid = ., name = "waitkill".*'            \
         'wait child 1.'                                         \
         'child 2.'                                              \
         'child 1.'                                              \
@@ -504,7 +504,7 @@ run_test -prog 'waitkill'  -check default_check                                 
 pts=15
 
 run_test -prog 'forktest'   -check default_check                                     \
-        'kernel_execve: pid = 2, name = "forktest".'            \
+      - 'kernel_execve: pid = ., name = "forktest".*'            \
         'I am child 31'                                         \
         'I am child 19'                                         \
         'I am child 13'                                         \
@@ -519,7 +519,7 @@ run_test -prog 'forktest'   -check default_check                                
 
 pts=10
 run_test -prog 'forktree'    -check default_check               \
-        'kernel_execve: pid = 2, name = "forktree".'            \
+      - 'kernel_execve: pid = ., name = "forktree".*'            \
       - '....: I am '\'''\'                                     \
       - '....: I am '\''0'\'                                    \
       - '....: I am '\'''\'                                     \
@@ -557,27 +557,81 @@ run_test -prog 'forktree'    -check default_check               \
         'init check memory pass.'
 
 pts=20
-timeout=500
-run_test -prog 'matrix'     -check default_check                \
-        'kernel_execve: pid = 2, name = "matrix".'              \
-        'fork ok.'                                              \
-        'pid 4 done!.'                                          \
-        'pid 7 done!.'                                          \
-        'pid 13 done!.'                                         \
-        'pid 17 done!.'                                         \
-        'pid 23 done!.'                                         \
-        'matrix pass.'                                          \
+timeout=150
+run_test -prog 'priority'      -check default_check             \
+	'sched class: stride_scheduler'                         \
+      - 'kernel_execve: pid = ., name = "priority".*'            \
+        'main: fork ok,now need to wait pids.'                  \
+        'stride sched correct result: 1 2 3 4 5'                \
         'all user-mode processes have quit.'                    \
         'init check memory pass.'                               \
     ! - 'user panic at .*'
 
 pts=20
-timeout=150
-run_test -prog 'priority'      -check default_check             \
-	'sched class: stride_scheduler'                         \
-        'kernel_execve: pid = 2, name = "priority".'            \
-        'main: fork ok,now need to wait pids.'                  \
-        'stride sched correct result: 1 2 3 4 5'                \
+timeout=240
+
+run_test -prog 'sleep'         -check default_check             \
+      - 'kernel_execve: pid = ., name = "sleep".*'               \
+        'sleep 1 x 100 slices.'                                 \
+        'sleep 3 x 100 slices.'                                 \
+        'sleep 7 x 100 slices.'                                 \
+        'sleep 10 x 100 slices.'                                \
+      - 'use 1... msecs.'                                       \
+        'sleep pass.'                                           \
+        'all user-mode processes have quit.'                    \
+        'init check memory pass.'                               \
+    !   '  trap 0x0000000e Page Fault'                          \
+    !   'killed by kernel.'                                     \
+    ! - 'user panic at .*'
+
+pts=20
+timeout=240
+run_test -prog 'sleepkill'   -check default_check               \
+      - 'kernel_execve: pid = ., name = "sleepkill".*'           \
+        'sleepkill pass.'                                       \
+        'all user-mode processes have quit.'                    \
+        'init check memory pass.'                               \
+    ! - 'user panic at .*'
+
+pts=40
+timeout=500
+run_test -prog 'matrix'     -check default_check                \
+        'Iter 1, No.0 philosopher_sema is thinking'                  \
+        'Iter 1, No.1 philosopher_sema is thinking'                  \
+        'Iter 1, No.2 philosopher_sema is thinking'                  \
+        'Iter 1, No.3 philosopher_sema is thinking'                  \
+        'Iter 1, No.4 philosopher_sema is thinking'                  \
+        'Iter 1, No.0 philosopher_sema is eating'                  \
+        'Iter 1, No.1 philosopher_sema is eating'                  \
+        'Iter 1, No.2 philosopher_sema is eating'                  \
+        'Iter 1, No.3 philosopher_sema is eating'                  \
+        'Iter 1, No.4 philosopher_sema is eating'                  \
+        'No.0 philosopher_sema quit'                                \
+        'No.1 philosopher_sema quit'                                \
+        'No.2 philosopher_sema quit'                                \
+        'No.3 philosopher_sema quit'                                \
+        'No.4 philosopher_sema quit'                                \
+        'Iter 1, No.0 philosopher_condvar is thinking'                  \
+        'Iter 1, No.1 philosopher_condvar is thinking'                  \
+        'Iter 1, No.2 philosopher_condvar is thinking'                  \
+        'Iter 1, No.3 philosopher_condvar is thinking'                  \
+        'Iter 1, No.4 philosopher_condvar is thinking'                  \
+        'Iter 1, No.0 philosopher_condvar is eating'                  \
+        'Iter 1, No.1 philosopher_condvar is eating'                  \
+        'Iter 1, No.2 philosopher_condvar is eating'                  \
+        'Iter 1, No.3 philosopher_condvar is eating'                  \
+        'Iter 1, No.4 philosopher_condvar is eating'                  \
+        'No.0 philosopher_condvar quit'                                \
+        'No.1 philosopher_condvar quit'                                \
+        'No.2 philosopher_condvar quit'                                \
+        'No.3 philosopher_condvar quit'                                \
+        'No.4 philosopher_condvar quit'                                \
+      - 'kernel_execve: pid = ., name = "matrix".*'              \
+        'fork ok.'                                              \
+        'pid 13 done!.'                                         \
+        'pid 17 done!.'                                         \
+        'pid 23 done!.'                                         \
+        'matrix pass.'                                          \
         'all user-mode processes have quit.'                    \
         'init check memory pass.'                               \
     ! - 'user panic at .*'

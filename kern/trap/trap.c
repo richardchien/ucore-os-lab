@@ -227,6 +227,11 @@ static void trap_dispatch(struct trapframe *tf) {
          * IMPORTANT FUNCTIONS:
          * sched_class_proc_tick
          */
+        /* LAB7 YOUR CODE */
+        /* you should upate you lab6 code
+         * IMPORTANT FUNCTIONS:
+         * run_timer_list
+         */
         ticks++;
         // if (ticks % TICK_NUM == 0) {
         //     // print_ticks();

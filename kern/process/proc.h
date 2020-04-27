@@ -33,7 +33,7 @@ struct context {
     uint32_t ebp;
 };
 
-#define PROC_NAME_LEN 15
+#define PROC_NAME_LEN 50
 #define MAX_PROCESS 4096
 #define MAX_PID (MAX_PROCESS * 2)
 
@@ -67,8 +67,10 @@ struct proc_struct {
 
 #define PF_EXITING 0x00000001 // getting shutdown
 
-#define WT_CHILD (0x00000001 | WT_INTERRUPTED)
 #define WT_INTERRUPTED 0x80000000 // the wait state could be interrupted
+#define WT_CHILD (0x00000001 | WT_INTERRUPTED) // wait child process
+#define WT_KSEM 0x00000100 // wait kernel semaphore
+#define WT_TIMER (0x00000002 | WT_INTERRUPTED) // wait timer
 
 #define le2proc(le, member) to_struct((le), struct proc_struct, member)
 
@@ -91,5 +93,6 @@ int do_wait(int pid, int *code_store);
 int do_kill(int pid);
 // FOR LAB6, set the process's priority (bigger value will get more CPU time)
 void lab6_set_priority(uint32_t priority);
+int do_sleep(unsigned int time);
 
 #endif /* !__KERN_PROCESS_PROC_H__ */
