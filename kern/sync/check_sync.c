@@ -160,21 +160,22 @@ int philosopher_using_semaphore(void *arg) /* i：哲学家号码，从0到N-1 *
  * }
  */
 
-struct proc_struct *philosopher_proc_condvar[N]; // N philosopher
-int state_condvar[N]; // the philosopher's state: EATING, HUNGARY, THINKING
-monitor_t mt, *mtp = &mt; // monitor
+struct proc_struct *philosopher_proc_condvar[N];
+int state_condvar[N]; // 哲学家状态: THINKING, HUNGARY, EATING
+condvar_t cv[N]; // 每个哲学家对应一个条件变量
+monitor_t mt, *mtp = &mt; // 管程
 
 void phi_test_condvar(int i) {
     if (state_condvar[i] == HUNGRY && state_condvar[LEFT] != EATING && state_condvar[RIGHT] != EATING) {
         cprintf("phi_test_condvar: state_condvar[%d] will eating\n", i);
         state_condvar[i] = EATING;
         cprintf("phi_test_condvar: signal self_cv[%d] \n", i);
-        cond_signal(&mtp->cv[i]);
+        cond_signal(&cv[i], mtp);
     }
 }
 
 void phi_take_forks_condvar(int i) {
-    down(&(mtp->mutex));
+    monitor_lock(mtp);
     //--------into routine in monitor--------------
     // LAB7 EXERCISE1: YOUR CODE
     // I am hungry
@@ -182,17 +183,14 @@ void phi_take_forks_condvar(int i) {
     state_condvar[i] = HUNGRY;
     phi_test_condvar(i);
     if (state_condvar[i] != EATING) {
-        cond_wait(&mtp->cv[i]);
+        cond_wait(&cv[i], mtp);
     }
     //--------leave routine in monitor--------------
-    if (mtp->next_count > 0)
-        up(&(mtp->next));
-    else
-        up(&(mtp->mutex));
+    monitor_unlock(mtp);
 }
 
 void phi_put_forks_condvar(int i) {
-    down(&(mtp->mutex));
+    monitor_lock(mtp);
     //--------into routine in monitor--------------
     // LAB7 EXERCISE1: YOUR CODE
     // I ate over
@@ -201,10 +199,7 @@ void phi_put_forks_condvar(int i) {
     phi_test_condvar(LEFT);
     phi_test_condvar(RIGHT);
     //--------leave routine in monitor--------------
-    if (mtp->next_count > 0)
-        up(&(mtp->next));
-    else
-        up(&(mtp->mutex));
+    monitor_unlock(mtp);
 }
 
 //---------- philosophers using monitor (condition variable) ----------------------
@@ -228,12 +223,11 @@ int philosopher_using_condvar(void *arg) { /* arg is the No. of philosopher 0~N-
 }
 
 void check_sync(void) {
-    int i;
-
     // check semaphore
     sem_init(&mutex, 1);
-    for (i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++) {
         sem_init(&s[i], 0);
+        state_sema[i] = THINKING;
         int pid = kernel_thread(philosopher_using_semaphore, (void *)i, 0);
         if (pid <= 0) {
             panic("create No.%d philosopher_using_semaphore failed.\n");
@@ -244,7 +238,8 @@ void check_sync(void) {
 
     // check condition variable
     monitor_init(&mt, N);
-    for (i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++) {
+        cond_init(&cv[i]);
         state_condvar[i] = THINKING;
         int pid = kernel_thread(philosopher_using_condvar, (void *)i, 0);
         if (pid <= 0) {
