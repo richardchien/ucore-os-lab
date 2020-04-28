@@ -10,7 +10,7 @@
 struct proc_struct;
 
 typedef struct {
-    unsigned int expires; // the expire time
+    unsigned int expires; // the expire time, 即剩余的 tick 数
     struct proc_struct *proc; // the proc wait in this timer. If the expire time is end, then this proc will be
                               // scheduled
     list_entry_t timer_link; // the timer list

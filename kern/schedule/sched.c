@@ -117,12 +117,12 @@ void add_timer(timer_t *timer) {
         list_entry_t *le = list_next(&timer_list);
         while (le != &timer_list) {
             timer_t *next = le2timer(le, timer_link);
-            if (timer->expires < next->expires) {
-                next->expires -= timer->expires;
+            if (timer->expires < next->expires) { // 找到比当前要插入的 timer 剩余时间长的
+                next->expires -= timer->expires; // 去掉其重合时间, break 后将当前 timer 插入在它前面
                 break;
             }
-            timer->expires -= next->expires;
-            le = list_next(le);
+            timer->expires -= next->expires; // next 比 timer 剩余时间短, 则去掉重合时间
+            le = list_next(le); // 并继续向后挪
         }
         list_add_before(le, &(timer->timer_link));
     }
@@ -158,7 +158,7 @@ void run_timer_list(void) {
             timer_t *timer = le2timer(le, timer_link);
             assert(timer->expires != 0);
             timer->expires--;
-            while (timer->expires == 0) {
+            while (timer->expires == 0) { // 剩余 tick 耗尽
                 le = list_next(le);
                 struct proc_struct *proc = timer->proc;
                 if (proc->wait_state != 0) {
@@ -166,7 +166,7 @@ void run_timer_list(void) {
                 } else {
                     warn("process %d's wait_state == 0.\n", proc->pid);
                 }
-                wakeup_proc(proc);
+                wakeup_proc(proc); // 则唤醒进程
                 del_timer(timer);
                 if (le == &timer_list) {
                     break;
@@ -174,7 +174,7 @@ void run_timer_list(void) {
                 timer = le2timer(le, timer_link);
             }
         }
-        sched_class_proc_tick(current);
+        sched_class_proc_tick(current); // 给调度器喂 tick
     }
     local_intr_restore(intr_flag);
 }

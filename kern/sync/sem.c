@@ -30,17 +30,19 @@ static __noinline void __up(semaphore_t *sem, uint32_t wait_state) {
 static __noinline uint32_t __down(semaphore_t *sem, uint32_t wait_state) {
     bool intr_flag;
     local_intr_save(intr_flag);
-    if (sem->value > 0) {
-        sem->value--;
+    if (sem->value > 0) { // 如果还有资源
+        sem->value--; // 则获取成功
         local_intr_restore(intr_flag);
         return 0;
     }
     wait_t __wait, *wait = &__wait;
-    wait_current_set(&(sem->wait_queue), wait, wait_state);
+    wait_current_set(&(sem->wait_queue), wait, wait_state); // 否则进入等待队列
     local_intr_restore(intr_flag);
 
-    schedule();
+    schedule(); // 并让出 CPU
 
+    // 当 schedule 返回时, 说明有 up 操作唤醒了本进程, 并把资源使用权转让给本进程,
+    // 由于 up 时 sem->value 并没有增加, 因此资源不会被其它进程抢占
     local_intr_save(intr_flag);
     wait_current_del(&(sem->wait_queue), wait);
     local_intr_restore(intr_flag);

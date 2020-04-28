@@ -164,7 +164,7 @@ struct proc_struct *philosopher_proc_condvar[N]; // N philosopher
 int state_condvar[N]; // the philosopher's state: EATING, HUNGARY, THINKING
 monitor_t mt, *mtp = &mt; // monitor
 
-void phi_test_condvar(i) {
+void phi_test_condvar(int i) {
     if (state_condvar[i] == HUNGRY && state_condvar[LEFT] != EATING && state_condvar[RIGHT] != EATING) {
         cprintf("phi_test_condvar: state_condvar[%d] will eating\n", i);
         state_condvar[i] = EATING;
@@ -179,6 +179,11 @@ void phi_take_forks_condvar(int i) {
     // LAB7 EXERCISE1: YOUR CODE
     // I am hungry
     // try to get fork
+    state_condvar[i] = HUNGRY;
+    phi_test_condvar(i);
+    if (state_condvar[i] != EATING) {
+        cond_wait(&mtp->cv[i]);
+    }
     //--------leave routine in monitor--------------
     if (mtp->next_count > 0)
         up(&(mtp->next));
@@ -188,11 +193,13 @@ void phi_take_forks_condvar(int i) {
 
 void phi_put_forks_condvar(int i) {
     down(&(mtp->mutex));
-
     //--------into routine in monitor--------------
     // LAB7 EXERCISE1: YOUR CODE
     // I ate over
     // test left and right neighbors
+    state_condvar[i] = THINKING;
+    phi_test_condvar(LEFT);
+    phi_test_condvar(RIGHT);
     //--------leave routine in monitor--------------
     if (mtp->next_count > 0)
         up(&(mtp->next));
