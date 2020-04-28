@@ -59,10 +59,9 @@
  */
 
 typedef struct monitor {
-    semaphore_t mutex; // the mutex lock for going into the routines in monitor, should be initialized to 1
-    semaphore_t next; // the next semaphore is used to down the signaling proc itself, and the other OR wakeuped waiting
-                      // proc should wake up the sleeped signaling proc.
-    int next_count; // the number of of sleeped signaling proc
+    semaphore_t mutex; // 用于实现互斥地进入管程
+    semaphore_t next; // 用于维护中途让出管程(唤醒了其它进程)的等待进程队列
+    int next_count; // 等在 next 队列中的进程数
 } monitor_t;
 
 // Initialize variables in monitor.
@@ -75,9 +74,8 @@ void monitor_unlock(monitor_t *mtp);
 void monitor_yield(monitor_t *mtp);
 
 typedef struct condvar {
-    semaphore_t
-        sem; // the sem semaphore is used to down the waiting proc, and the signaling proc should up the waiting proc
-    int count; // the number of waiters on condvar
+    semaphore_t sem; // 利用信号量实现等待和通知
+    int count; // 正在等待此条件变量的进程数
 } condvar_t;
 
 // Initialize condition variable.
