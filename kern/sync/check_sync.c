@@ -237,7 +237,7 @@ void check_sync(void) {
     }
 
     // check condition variable
-    monitor_init(&mt, N);
+    monitor_init(&mt);
     for (int i = 0; i < N; i++) {
         cond_init(&cv[i]);
         state_condvar[i] = THINKING;

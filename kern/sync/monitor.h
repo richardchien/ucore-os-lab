@@ -65,7 +65,7 @@ typedef struct monitor {
 } monitor_t;
 
 // Initialize variables in monitor.
-void monitor_init(monitor_t *mtp, size_t num_cv);
+void monitor_init(monitor_t *mtp);
 // Lock monitor procedure.
 void monitor_lock(monitor_t *mtp);
 // Unlock monitor procedure.

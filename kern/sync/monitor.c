@@ -4,9 +4,8 @@
 #include <stdio.h>
 
 // Initialize monitor.
-void monitor_init(monitor_t *mtp, size_t num_cv) {
+void monitor_init(monitor_t *mtp) {
     int i;
-    assert(num_cv > 0);
     mtp->next_count = 0;
     sem_init(&(mtp->mutex), 1); // unlocked
     sem_init(&(mtp->next), 0);
