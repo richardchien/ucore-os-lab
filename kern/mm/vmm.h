@@ -84,7 +84,7 @@ static inline int mm_count_dec(struct mm_struct *mm) {
 
 static inline void lock_mm(struct mm_struct *mm) {
     if (mm != NULL) {
-        down(&(mm->mm_sem));
+        sem_wait(&(mm->mm_sem));
         if (current != NULL) {
             mm->locked_by = current->pid;
         }
@@ -93,7 +93,7 @@ static inline void lock_mm(struct mm_struct *mm) {
 
 static inline void unlock_mm(struct mm_struct *mm) {
     if (mm != NULL) {
-        up(&(mm->mm_sem));
+        sem_signal(&(mm->mm_sem));
         mm->locked_by = 0;
     }
 }

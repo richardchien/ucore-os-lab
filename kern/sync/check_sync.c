@@ -85,26 +85,26 @@ void phi_test_sema(i) /* i：哲学家号码从0到N-1 */
 {
     if (state_sema[i] == HUNGRY && state_sema[LEFT] != EATING && state_sema[RIGHT] != EATING) {
         state_sema[i] = EATING;
-        up(&s[i]);
+        sem_signal(&s[i]);
     }
 }
 
 void phi_take_forks_sema(int i) /* i：哲学家号码从0到N-1 */
 {
-    down(&mutex); /* 进入临界区 */
+    sem_wait(&mutex); /* 进入临界区 */
     state_sema[i] = HUNGRY; /* 记录下哲学家i饥饿的事实 */
     phi_test_sema(i); /* 试图得到两只叉子 */
-    up(&mutex); /* 离开临界区 */
-    down(&s[i]); /* 如果得不到叉子就阻塞 */
+    sem_signal(&mutex); /* 离开临界区 */
+    sem_wait(&s[i]); /* 如果得不到叉子就阻塞 */
 }
 
 void phi_put_forks_sema(int i) /* i：哲学家号码从0到N-1 */
 {
-    down(&mutex); /* 进入临界区 */
+    sem_wait(&mutex); /* 进入临界区 */
     state_sema[i] = THINKING; /* 哲学家进餐结束 */
     phi_test_sema(LEFT); /* 看一下左邻居现在是否能进餐 */
     phi_test_sema(RIGHT); /* 看一下右邻居现在是否能进餐 */
-    up(&mutex); /* 离开临界区 */
+    sem_signal(&mutex); /* 离开临界区 */
 }
 
 int philosopher_using_semaphore(void *arg) /* i：哲学家号码，从0到N-1 */

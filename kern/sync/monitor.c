@@ -14,22 +14,22 @@ void monitor_init(monitor_t *mtp, size_t num_cv) {
 
 // Lock monitor procedure.
 void monitor_lock(monitor_t *mtp) {
-    down(&(mtp->mutex));
+    sem_wait(&(mtp->mutex));
 }
 
 // Unlock monitor procedure.
 void monitor_unlock(monitor_t *mtp) {
     if (mtp->next_count > 0) {
-        up(&(mtp->next)); // 唤醒由于 monitor_yield 而等待的进程
+        sem_signal(&(mtp->next)); // 唤醒由于 monitor_yield 而等待的进程
     } else {
-        up(&(mtp->mutex)); // 唤醒由于互斥锁而等待进入管程的进程
+        sem_signal(&(mtp->mutex)); // 唤醒由于互斥锁而等待进入管程的进程
     }
 }
 
 // Yield the ownership of monitor, to let the newly waked-up process run.
 void monitor_yield(monitor_t *mtp) {
     mtp->next_count++;
-    down(&mtp->next); // 等待被唤醒者离开(unlock)管程
+    sem_wait(&mtp->next); // 等待被唤醒者离开(unlock)管程
     mtp->next_count--;
 }
 
@@ -54,7 +54,7 @@ void cond_signal(condvar_t *cvp, monitor_t *mtp) {
      *       }
      */
     if (cvp->count > 0) {
-        up(&cvp->sem); // 唤醒一个正在等待者
+        sem_signal(&cvp->sem); // 唤醒一个正在等待者
         monitor_yield(mtp); // 让出管程执行权
     }
     cprintf("cond_signal end: cvp %x, cvp->count %d, mtp->next_count %d\n", cvp, cvp->count, mtp->next_count);
@@ -77,7 +77,7 @@ void cond_wait(condvar_t *cvp, monitor_t *mtp) {
      */
     cvp->count++;
     monitor_unlock(mtp);
-    down(&cvp->sem); // 等待条件满足
+    sem_wait(&cvp->sem); // 等待条件满足
     cvp->count--; // 这里实现的是 Hoare 管程, 发出 signal 的进程会立即让出管程, 因此被唤醒者立即满足条件, 无需再判断
     cprintf("cond_wait end:  cvp %x, cvp->count %d, mtp->next_count %d\n", cvp, cvp->count, mtp->next_count);
 }

@@ -12,7 +12,7 @@ void sem_init(semaphore_t *sem, int value) {
     wait_queue_init(&(sem->wait_queue));
 }
 
-static __noinline void __up(semaphore_t *sem, uint32_t wait_state) {
+static __noinline void __signal(semaphore_t *sem, uint32_t wait_state) {
     bool intr_flag;
     local_intr_save(intr_flag);
     {
@@ -27,7 +27,7 @@ static __noinline void __up(semaphore_t *sem, uint32_t wait_state) {
     local_intr_restore(intr_flag);
 }
 
-static __noinline uint32_t __down(semaphore_t *sem, uint32_t wait_state) {
+static __noinline uint32_t __wait(semaphore_t *sem, uint32_t wait_state) {
     bool intr_flag;
     local_intr_save(intr_flag);
     if (sem->value > 0) { // 如果还有资源
@@ -41,8 +41,8 @@ static __noinline uint32_t __down(semaphore_t *sem, uint32_t wait_state) {
 
     schedule(); // 并让出 CPU
 
-    // 当 schedule 返回时, 说明有 up 操作唤醒了本进程, 并把资源使用权转让给本进程,
-    // 由于 up 时 sem->value 并没有增加, 因此资源不会被其它进程抢占
+    // 当 schedule 返回时, 说明有 signal 操作唤醒了本进程, 并把资源使用权转让给本进程,
+    // 由于 signal 时 sem->value 并没有增加, 因此资源不会被其它进程抢占
     local_intr_save(intr_flag);
     wait_current_del(&(sem->wait_queue), wait);
     local_intr_restore(intr_flag);
@@ -53,16 +53,16 @@ static __noinline uint32_t __down(semaphore_t *sem, uint32_t wait_state) {
     return 0;
 }
 
-void up(semaphore_t *sem) {
-    __up(sem, WT_KSEM);
+void sem_signal(semaphore_t *sem) {
+    __signal(sem, WT_KSEM);
 }
 
-void down(semaphore_t *sem) {
-    uint32_t flags = __down(sem, WT_KSEM);
+void sem_wait(semaphore_t *sem) {
+    uint32_t flags = __wait(sem, WT_KSEM);
     assert(flags == 0);
 }
 
-bool try_down(semaphore_t *sem) {
+bool sem_try(semaphore_t *sem) {
     bool intr_flag, ret = 0;
     local_intr_save(intr_flag);
     if (sem->value > 0) {
