@@ -38,6 +38,18 @@ size_t strnlen(const char *s, size_t len) {
 }
 
 /* *
+ * strcat - appends a copy of the @src string to the @dst string. The terminating null
+ * character in @dst is overwritten by the first character of @src, and a new null-character
+ * is appended at the end of the new string formed by the concatenation of both in @dst.
+ * @dst:    pointer to the @dst array, which should be large enough to contain the concatenated
+ *          resulting string.
+ * @src:    string to be appended, this should not overlap @dst
+ * */
+char *strcat(char *dst, const char *src) {
+    return strcpy(dst + strlen(dst), src);
+}
+
+/* *
  * strcpy - copies the string pointed by @src into the array pointed by @dst,
  * including the terminating null character.
  * @dst:    pointer to the destination array where the content is to be copied

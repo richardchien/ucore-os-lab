@@ -3,7 +3,7 @@
 #include <ulib.h>
 
 #define DEPTH 4
-
+#define SLEEP_TIME 400
 void forktree(const char *cur);
 
 void forkchild(const char *cur, char branch) {
@@ -27,6 +27,8 @@ void forktree(const char *cur) {
 }
 
 int main(void) {
+    cprintf("forktree process will sleep %d ticks\n", SLEEP_TIME);
+    sleep(SLEEP_TIME);
     forktree("");
     return 0;
 }

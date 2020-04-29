@@ -1,7 +1,20 @@
 #include <defs.h>
+#include <lock.h>
+#include <stat.h>
 #include <stdio.h>
+#include <string.h>
 #include <syscall.h>
 #include <ulib.h>
+
+static lock_t fork_lock = INIT_LOCK;
+
+void lock_fork(void) {
+    lock(&fork_lock);
+}
+
+void unlock_fork(void) {
+    unlock(&fork_lock);
+}
 
 void exit(int error_code) {
     sys_exit(error_code);
@@ -39,14 +52,22 @@ void print_pgdir(void) {
     sys_pgdir();
 }
 
-unsigned int gettime_msec(void) {
-    return (unsigned int)sys_gettime();
-}
-
 void lab6_set_priority(uint32_t priority) {
     sys_lab6_set_priority(priority);
 }
 
 int sleep(unsigned int time) {
     return sys_sleep(time);
+}
+
+unsigned int gettime_msec(void) {
+    return (unsigned int)sys_gettime();
+}
+
+int __exec(const char *name, const char **argv) {
+    int argc = 0;
+    while (argv[argc] != NULL) {
+        argc++;
+    }
+    return sys_exec(name, argc, argv);
 }

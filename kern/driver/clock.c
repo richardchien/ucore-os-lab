@@ -25,6 +25,10 @@
 
 volatile size_t ticks;
 
+long SYSTEM_READ_TIMER(void) {
+    return ticks;
+}
+
 /* *
  * clock_init - initialize 8253 clock to interrupt 100 times per second,
  * and then enable IRQ_TIMER.

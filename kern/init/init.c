@@ -1,6 +1,7 @@
 #include <clock.h>
 #include <console.h>
 #include <defs.h>
+#include <fs.h>
 #include <ide.h>
 #include <intr.h>
 #include <kdebug.h>
@@ -42,6 +43,7 @@ int kern_init(void) {
 
     ide_init(); // init ide devices
     swap_init(); // init swap
+    fs_init(); // init fs
 
     clock_init(); // init clock interrupt
     intr_enable(); // enable irq interrupt

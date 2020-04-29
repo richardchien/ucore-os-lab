@@ -39,6 +39,8 @@ struct context {
 
 extern list_entry_t proc_list;
 
+struct inode;
+
 struct proc_struct {
     enum proc_state state; // Process state
     int pid; // Process ID
@@ -63,6 +65,7 @@ struct proc_struct {
     skew_heap_entry_t lab6_run_pool; // FOR LAB6 ONLY: the entry in the run pool
     uint32_t lab6_pass; // FOR LAB6 ONLY: the current pass of the process
     uint32_t lab6_priority; // FOR LAB6 ONLY: the priority of process, set by lab6_set_priority(uint32_t)
+    struct files_struct *filesp; // the file related info(pwd, files_count, files_array, fs_semaphore) of process
 };
 
 #define PF_EXITING 0x00000001 // getting shutdown
@@ -71,6 +74,7 @@ struct proc_struct {
 #define WT_CHILD (0x00000001 | WT_INTERRUPTED) // wait child process
 #define WT_KSEM 0x00000100 // wait kernel semaphore
 #define WT_TIMER (0x00000002 | WT_INTERRUPTED) // wait timer
+#define WT_KBD (0x00000004 | WT_INTERRUPTED) // wait the input of keyboard
 
 #define le2proc(le, member) to_struct((le), struct proc_struct, member)
 
@@ -88,7 +92,7 @@ struct proc_struct *find_proc(int pid);
 int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf);
 int do_exit(int error_code);
 int do_yield(void);
-int do_execve(const char *name, size_t len, unsigned char *binary, size_t size);
+int do_execve(const char *name, int argc, const char **argv);
 int do_wait(int pid, int *code_store);
 int do_kill(int pid);
 // FOR LAB6, set the process's priority (bigger value will get more CPU time)
