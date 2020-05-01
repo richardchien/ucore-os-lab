@@ -123,7 +123,7 @@ static struct proc_struct *alloc_proc(void) {
          *     uint32_t lab6_priority;                     // FOR LAB6 ONLY: the priority of process, set by
          * lab6_set_priority(uint32_t)
          */
-        // LAB8:EXERCISE2 YOUR CODE HINT:need add some code to init fs in proc_struct, ...
+        // LAB8 YOUR CODE HINT:need add some code to init fs in proc_struct, ...
         proc->state = PROC_UNINIT;
         proc->pid = -1;
         proc->runs = 0;
@@ -144,6 +144,7 @@ static struct proc_struct *alloc_proc(void) {
         skew_heap_init(&proc->lab6_run_pool);
         proc->lab6_pass = 0;
         proc->lab6_priority = 1;
+        proc->filesp = NULL;
     }
     return proc;
 }
@@ -424,6 +425,7 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
         goto fork_out;
     }
     ret = -E_NO_MEM;
+
     // LAB4:EXERCISE2 YOUR CODE
     /*
      * Some Useful MACROs, Functions and DEFINEs, you can use them in below implementation.
@@ -458,11 +460,12 @@ int do_fork(uint32_t clone_flags, uintptr_t stack, struct trapframe *tf) {
      *    update step 5: insert proc_struct into hash_list && proc_list, set the relation links of process
      */
 
-    // LAB8:EXERCISE2 YOUR CODE  HINT:how to copy the fs in parent's proc_struct?
+    // LAB8 YOUR CODE  HINT:how to copy the fs in parent's proc_struct?
 
     if (!(proc = alloc_proc())) goto fork_out;
     if (setup_kstack(proc) != 0) goto bad_fork_cleanup_proc;
     if (copy_mm(clone_flags, proc) != 0) goto bad_fork_cleanup_kstack;
+    if (copy_files(clone_flags, proc) != 0) goto bad_fork_cleanup_fs;
     copy_thread(proc, stack, tf);
 
     bool intr_flag;
