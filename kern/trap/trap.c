@@ -241,7 +241,7 @@ static void trap_dispatch(struct trapframe *tf) {
         c = cons_getc();
         {
             extern void dev_stdin_write(char c);
-            dev_stdin_write(c);
+            dev_stdin_write(c); // 调用 kern/fs/devs/dev_stdin.c 的 dev_stdin_write, 写入缓冲区并唤醒等待输入的进程
         }
         break;
     // LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
