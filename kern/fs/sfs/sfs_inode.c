@@ -573,8 +573,8 @@ static int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, o
     int ret = 0;
     size_t size, alen = 0;
     uint32_t ino;
-    uint32_t blkno = offset / SFS_BLKSIZE; // The NO. of Rd/Wr begin block
-    uint32_t nblks = endpos / SFS_BLKSIZE - blkno; // The size of Rd/Wr blocks
+    uint32_t blk_idx_in_file = offset / SFS_BLKSIZE; // The NO. of Rd/Wr begin block
+    uint32_t nblks = endpos / SFS_BLKSIZE - blk_idx_in_file; // The size of Rd/Wr blocks
 
     // LAB8:EXERCISE1 YOUR CODE HINT: call sfs_bmap_load_nolock, sfs_rbuf, sfs_rblock,etc. read different kind of blocks
     // in file
@@ -587,6 +587,47 @@ static int sfs_io_nolock(struct sfs_fs *sfs, struct sfs_inode *sin, void *buf, o
      * (3) If end position isn't aligned with the last block, Rd/Wr some content from begin to the (endpos %
      * SFS_BLKSIZE) of the last block NOTICE: useful function: sfs_bmap_load_nolock, sfs_buf_op
      */
+
+    // 读第一个块
+    blkoff = offset % SFS_BLKSIZE;
+    size = nblks != 0 ? SFS_BLKSIZE - blkoff : endpos - offset;
+    if ((ret = sfs_bmap_load_nolock(sfs, sin, blk_idx_in_file, &ino)) != 0) {
+        goto out;
+    }
+    if ((ret = sfs_buf_op(sfs, buf, size, ino, blkoff)) != 0) {
+        goto out;
+    }
+    alen += size, buf += size;
+    blk_idx_in_file++;
+
+    if (nblks > 0) {
+        // 读中间的完整块
+        if (nblks > 1) {
+            // offset 和 endpos 之间有完整的 block, 直接连续读取
+            int nfullblks = nblks - 1;
+            size = nfullblks * SFS_BLKSIZE;
+            if ((ret = sfs_bmap_load_nolock(sfs, sin, blk_idx_in_file, &ino)) != 0) {
+                goto out;
+            }
+            if ((ret = sfs_block_op(sfs, buf, ino, nfullblks)) != 0) {
+                goto out;
+            }
+            alen += size, buf += size;
+            blk_idx_in_file += nfullblks;
+        }
+        // 读最后一个块
+        size = endpos % SFS_BLKSIZE;
+        if (size != 0) {
+            if ((ret = sfs_bmap_load_nolock(sfs, sin, blk_idx_in_file, &ino)) != 0) {
+                goto out;
+            }
+            if ((ret = sfs_buf_op(sfs, buf, size, ino, 0)) != 0) {
+                goto out;
+            }
+            alen += size;
+        }
+    }
+
 out:
     *alenp = alen;
     if (offset + alen > sin->din->size) {
